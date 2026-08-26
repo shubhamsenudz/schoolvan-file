@@ -109,25 +109,27 @@ function DocumentsPage(){
   </section>);
 }
 function Dashboard(){
-  const [data,setData]=useState(null);
-  const [counts,setCounts]=useState([]);
-  useEffect(()=>{
-    api("/dashboard").then(setData).catch(()=>{});
-    Promise.all([api("/contractors"),api("/vehicles"),api("/drivers"),api("/docs")]).then(sets => setCounts(sets.map(x => (x||[]).length))).catch(()=>{});
-  },[]);
+  const [w,setW]=useState(null);
+  useEffect(()=>{ api("/work").then(setW).catch(()=>{}); },[]);
+  const rows=[...(w?.expired||[]).map(r=>({...r,flag:"Expired"})), ...(w?.expiring30||[]).map(r=>({...r,flag:"30 days"}))];
   return (<div>
     <div className="hero-panel">
-      <div className="kicker">For school transport in-charge</div>
-      <h1>SchoolVan File</h1>
-      <p>{data?.tag || "Keep fitness, insurance, DL and police verification in one audit file."}</p>
+      <div className="kicker">Today</div>
+      <h1>Documents that can stop a van</h1>
+      <p>Fitness, insurance, PUC, permit, DL. Anything expired or due in 30 days.</p>
     </div>
     <div className="hero">
-      <div className="stat"><span>Workspace</span><b>{data?.tenant || "—"}</b></div>
-      <div className="stat"><span>Contractors</span><b>{counts[0] ?? 0}</b></div>
-      <div className="stat"><span>Vehicles</span><b>{counts[1] ?? 0}</b></div>
-      <div className="stat"><span>Drivers</span><b>{counts[2] ?? 0}</b></div>
-      <div className="stat"><span>Documents</span><b>{counts[3] ?? 0}</b></div>
+      <div className="stat"><span>Alerts</span><b>{w?.alerts ?? 0}</b></div>
+      <div className="stat"><span>Expired</span><b>{(w?.expired||[]).length}</b></div>
+      <div className="stat"><span>Expiring</span><b>{(w?.expiring30||[]).length}</b></div>
     </div>
+    <section className="card">
+      <h2>Audit queue</h2>
+      {rows.length===0 ? <div className="empty">No expiry alerts. Add documents with YYYY-MM-DD dates.</div> : (
+        <div className="table-wrap"><table><thead><tr><th>Flag</th><th>Type</th><th>Owner</th><th>Expiry</th><th>Days</th></tr></thead>
+        <tbody>{rows.map(r=><tr key={r.id}><td>{r.flag}</td><td>{r.docType}</td><td>{r.ownerType} {r.ownerId}</td><td>{r.expiryOn}</td><td>{r.daysLeft}</td></tr>)}</tbody></table></div>
+      )}
+    </section>
   </div>);
 }
 export default function App(){

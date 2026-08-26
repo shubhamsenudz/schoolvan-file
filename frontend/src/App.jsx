@@ -11,6 +11,18 @@ async function api(path, opts={}) {
   if(!text) return null;
   return JSON.parse(text);
 }
+function SettingsPage(){
+  const [form,setForm]=useState({name:"",city:"",phone:"",gstin:""});
+  const [msg,setMsg]=useState("");
+  useEffect(()=>{ api("/settings").then(s=>setForm({name:s.name||"",city:s.city||"",phone:s.phone||"",gstin:s.gstin||""})); },[]);
+  async function save(ev){ ev.preventDefault(); await api("/settings",{method:"PUT",body:JSON.stringify(form)}); setMsg("Saved."); }
+  return (<section className="card"><h2>School settings</h2><form className="grid-form" onSubmit={save}>
+    <label>Name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} /></label>
+    <label>City<input value={form.city} onChange={e=>setForm({...form,city:e.target.value})} /></label>
+    <label>Phone<input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} /></label>
+    <label>GSTIN<input value={form.gstin} onChange={e=>setForm({...form,gstin:e.target.value})} /></label>
+    <button>Save settings</button></form>{msg && <p className="muted">{msg}</p>}</section>);
+}
 function ContractorsPage(){
   const [rows,setRows]=useState([]);
   const [form,setForm]=useState({});
@@ -126,8 +138,9 @@ function Dashboard(){
     <section className="card">
       <h2>Audit queue</h2>
       {rows.length===0 ? <div className="empty">No expiry alerts. Add documents with YYYY-MM-DD dates.</div> : (
-        <div className="table-wrap"><table><thead><tr><th>Flag</th><th>Type</th><th>Owner</th><th>Expiry</th><th>Days</th></tr></thead>
-        <tbody>{rows.map(r=><tr key={r.id}><td>{r.flag}</td><td>{r.docType}</td><td>{r.ownerType} {r.ownerId}</td><td>{r.expiryOn}</td><td>{r.daysLeft}</td></tr>)}</tbody></table></div>
+        <div className="table-wrap"><table><thead><tr><th>Flag</th><th>Type</th><th>Owner</th><th>Expiry</th><th>Days</th><th></th></tr></thead>
+        <tbody>{rows.map(r=><tr key={r.id}><td>{r.flag}</td><td>{r.docType}</td><td>{r.ownerType} {r.ownerId}</td><td>{r.expiryOn}</td><td>{r.daysLeft}</td>
+          <td>{r.waLink && <a className="wa" href={r.waLink} target="_blank" rel="noreferrer">WhatsApp</a>}</td></tr>)}</tbody></table></div>
       )}
     </section>
   </div>);
@@ -174,6 +187,7 @@ export default function App(){
   if(page==="vehicles") body = <VehiclesPage />;
   if(page==="drivers") body = <DriversPage />;
   if(page==="docs") body = <DocumentsPage />;
+  if(page==="settings") body = <SettingsPage />;
   return (<div className="shell">
     <div className="top">
       <button type="button" className="burger" onClick={()=>setMenu(v=>!v)}>Menu</button>
@@ -188,6 +202,7 @@ export default function App(){
           <button className={page==="vehicles"?"active":""} onClick={()=>setPage("vehicles")}>Vehicles</button>
           <button className={page==="drivers"?"active":""} onClick={()=>setPage("drivers")}>Drivers</button>
           <button className={page==="docs"?"active":""} onClick={()=>setPage("docs")}>Documents</button>
+          <button className={page==="settings"?"active":""} onClick={()=>setPage("settings")}>Settings</button>
       </nav>
       <main>{body}</main>
       <nav className="tabs">

@@ -3,8 +3,8 @@
   "short_name": "SchoolVan File",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#b45309",
+  "background_color": "#F7F3EA",
+  "theme_color": "#C47B0A",
   "icons": [
     {
       "src": "/icon.svg",
